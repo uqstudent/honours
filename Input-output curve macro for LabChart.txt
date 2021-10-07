@@ -1,0 +1,159 @@
+Sub IOC_Macro ()
+	' Set up Input-Output-Curve document with Scope View 
+	' & 1 recording channel then save the new file.
+	Call Doc.OpenView ("Scope View")
+	Call Doc.SetViewState ("Scope View", 1, 61488)
+	Call Doc.SetDisplayedChannels (1)
+	Call Doc.FileSaveAsDialog ()
+	' -------------------------
+	
+	' Set all initial stimulation paramters for stimulation current strength 0.3mA 
+	Call Doc.AddCommentAtEnd (0, "Setting 0.3mA")
+
+	' Begin Setting Stimulator Values
+	outputIndex = 0
+	paramId = "_MaxRepeatRate"
+	value = "0.1"
+	unit = "Hz"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+	
+	outputIndex = 0
+	paramId = "_WaveformRepeat"
+	value = "4"
+	unit = ""
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+	
+	outputIndex = 0
+	paramId = "_IWidth"
+	value = "0.1"
+	unit = "ms"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+
+	outputIndex = 0
+	paramId = "_IAmp"
+	value = "0.3"
+	unit = "mA"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+
+	outputIndex = 0
+	paramId = "_MarkerChan"
+	value = "2"
+	unit = ""
+	suppressRefresh = True
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+	' End Setting Stimulator Values
+	' ----------------------------
+	
+	' Cycle through collecting 4 stimulation responses (40s) for each current 0.3-1.0
+	Call Doc.StimulateNow ()
+	
+	hours = 0
+	minutes = 0
+	seconds = 40
+	Call WaitFor (hours, minutes, seconds)
+	' ----------------------------
+
+	' Set new current intensity to 0.4
+	Call Doc.AddCommentAtEnd (0, "Setting 0.4")
+
+	outputIndex = 0
+	paramId = "_IAmp"
+	value = "0.4"
+	unit = "mA"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+
+	Call Doc.StimulateNow ()
+	seconds = 40
+	Call WaitFor (hours, minutes, seconds)
+	' ----------------------------
+
+	Call Doc.AddCommentAtEnd (0, "Setting 0.5")
+
+	outputIndex = 0
+	paramId = "_IAmp"
+	value = "0.5"
+	unit = "mA"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+
+	Call Doc.StimulateNow ()
+	seconds = 40
+	Call WaitFor (hours, minutes, seconds)
+	' ----------------------------
+
+	Call Doc.AddCommentAtEnd (0, "Setting 0.6")
+
+	outputIndex = 0
+	paramId = "_IAmp"
+	value = "0.6"
+	unit = "mA"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+	
+	Call Doc.StimulateNow ()
+	seconds = 40
+	Call WaitFor (hours, minutes, seconds)
+	' ----------------------------
+
+	Call Doc.AddCommentAtEnd (0, "Setting 0.7")
+
+	outputIndex = 0
+	paramId = "_IAmp"
+	value = "0.7"
+	unit = "mA"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+
+	Call Doc.StimulateNow ()
+	seconds = 40
+	Call WaitFor (hours, minutes, seconds)
+	' ----------------------------
+
+	Call Doc.AddCommentAtEnd (0, "Setting 0.8")
+
+	outputIndex = 0
+	paramId = "_IAmp"
+	value = "0.8"
+	unit = "mA"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+
+	Call Doc.StimulateNow ()
+	seconds = 40
+	Call WaitFor (hours, minutes, seconds)
+	' ----------------------------
+
+	Call Doc.AddCommentAtEnd (0, "Setting 0.9")
+
+	outputIndex = 0
+	paramId = "_IAmp"
+	value = "0.9"
+	unit = "mA"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+	
+	Call Doc.StimulateNow ()
+	seconds = 40
+	Call WaitFor (hours, minutes, seconds)
+	' ----------------------------
+
+	Call Doc.AddCommentAtEnd (0, "Setting 1.0")
+
+	outputIndex = 0
+	paramId = "_IAmp"
+	value = "1.0"
+	unit = "mA"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+	
+	Call Doc.StimulateNow ()
+	seconds = 40
+	Call WaitFor (hours, minutes, seconds)
+
+
+End Sub

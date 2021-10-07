@@ -1,0 +1,150 @@
+# For the analysis and presentation of data collected from
+# electrophysiology experiments in the mouse hippocampus.
+# Start dependencies.
+# List dependent packages, install packages not yet installed, then load packages.
+packages <- c("Rtools”, “ggplot2", “ggthemes”, “dplyr”, “ggpubr”, “tidyverse", "broom",+
+	“AICcmodavg”, “hrbrthemes”, “viridis”, “forcats”, “reshape2”, “basicTrendline”, “gridExtra”)
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+    install.packages(packages[!installed_packages])
+}
+lapply(packages, library, character.only = TRUE) %>%
+    invisible()
+
+
+# End dependencies.
+# Begin analyses.
+
+
+# ANOVA to compare dissection times between experimental months.
+# Generate an AOV model of dissection time~month called ‘dissmod’.
+# Data in ’allanimals.csv’ includes experimental dates and dissection times.
+# Note stats::TukeyHSD will use the Tukey-Kramer procedure for unbalanced sample sizes.
+allanimals <- read.csv(file="allanimals.csv",header=TRUE,na.strings="")
+allanimals$Month <- factor(allanimals$Month)
+dissmod <- aov(Dissect~Month,data=allanimals)
+summary(dissmod)
+TukeyHSD(dissmod, conf.level=.95)
+
+# ANOVA of linear regression models for baseline fEPSP slope by sex
+# Data in ‘baselinesex.csv’ includes mean baseline fEPSP slope, sex, minute (n=4).
+ltpsex <- read.csv(file="baselinesex.csv",header=TRUE,na.strings="")
+ltpsex$Sex <-factor(ltpsex$Sex)
+mod<- lm(Slope~Sex*Min, data=ltpsex)
+anova(mod)
+
+# ANOVA of linear regression models for LTP fEPSP slope by sex.
+# Data in ‘ltpsex.csv’ includes mean LTP fEPSP slope, sex, minute (n=4).
+ltpsex <- read.csv(file="ltpsex.csv",header=TRUE,na.strings="")
+ltpsex$Sex <-factor(ltpsex$Sex)
+ltpmod<- lm(Slope~Sex*Min, data=ltpsex)
+anova(ltpmod)
+
+
+# End analyses.
+# Begin graphs.
+
+
+# Plot age and weight by sex and strain.
+# Data in ‘animals.csv’ include weight, age, strain and sex of experimental animals only.
+animals <- read.csv(file="Animals.csv",header=TRUE,na.strings="")
+weightplot <- animals %>%
+	mutate(Strain = fct_reorder(Strain, Weight))  %>%
+	mutate(Strain = factor(Strain, levels=c("B","C"))) %>%
+	ggplot(aes(fill=Sex, y=Weight, x=Strain)) +
+		geom_violin(position="dodge", alpha=0.5) +
+		xlab("Strain"), ylab("Weight (grams)") +
+		ylim(0,20), theme_classic2()
+ageplot <- animals %>%
+	mutate(Strain = fct_reorder(Strain, Age))  %>%
+	mutate(Strain = factor(Strain, levels=c("B","C"))) %>%
+	ggplot(aes(fill=Sex, y=Age, x=Strain)) +
+		geom_violin(position="dodge", alpha=0.5) +
+		xlab("Strain"), ylab("Age (days)") +
+		ylim(10,40), theme_classic2()
+grid.arrange(weightplot+theme(text =element_text(size =20)), ageplot+
+	theme(text =element_text(size =20)), nrow = 2)
+
+# Plot dissection times over the experimental period.
+# Data in ’allanimals.csv’ includes experimental dates and dissection times.
+diss_plot <- function(x,y) {plot(x, y, main = "Dissection Practice Effects", xlab = "Order",+
+	ylab = "Dissection Time (minutes)", ylim = c(0,8), xlim = c(0,35), type="b", col="red",+
+	lty=2, lwd=1, pch =19, cex.lab=1.3, cex.axis=1, cex.main=1.3)}
+diss_plot(Dissect ~ Order, allanimals[allanimals$Type == "W", ])
+points(Dissect ~ Order, allanimals[allanimals$Type == "E", ], col="black", pch =19)
+lines(Dissect ~ Order, allanimals[allanimals$Type == "E", ],  col="black",lty=2)
+legend(26,1,legend=c("Work-up","Experimental"), col=c("red","black"), pch=c(19,19), lty=c(2,2), ncol=1)
+
+# Plot IOCs
+# Data in ’ioc.csv’ includes the stimulating current and responsive fEPSP slope 
+# for 11 hippocampal slices, as well as their mean, SD  and SEM.
+ioc <- read.csv(file="ioc.csv",header=TRUE,na.strings="")
+ioc_plot <- function(x,y) {plot(x, y, main = "Input-Output Curve", xlab = "Stimulating current (mA)",+
+	ylab = "Slope (normalised %)", ylim = c(0,300), xlim = c(0.2,1.3), type="b", col="black", lty=2,+
+	lwd=1, pch =19, cex.lab=1.3, cex.axis=1, cex.main=1.3)}
+ioc_plot( Mean ~ Stim, ioc)
+arrows(ioc$Stim, ioc$Mean-ioc$SEM, ioc$Stim, ioc$Mean+ioc$SEM,code=3,length=0.00,angle =90, col="grey")
+points(Mean ~ Stim, ioc, col="black", pch =19)
+points(Indiv ~ Stim, ioc, col="orange", pch =19)
+lines(Indiv ~ Stim, ioc, col="orange",lty=2)
+legend(1,50,legend=c("Mean response", "Individual response"), col=c("black", "orange"), pch=c(19,19),+
+	lty=c(2,2), ncol=1)
+
+# Plot 4 successful LTP profiles.
+# Data in 'ltpsusave.csv' describes the mean normalised average 
+#  initial slope of field excitatory postsynaptic potentials (n=4).
+ltpdata <- read.csv(file="ltpsusave.csv",header=TRUE,na.strings="")
+ltp_plot <- function(x,y) {plot(x, y, main = "LTP Profile", xlab = "Minutes", ylab = "Slope (normalised %)",+
+	ylim = c(0,200), xlim = c(0,45), type="b", col="red", lty=2, lwd=1, pch =19, cex.lab=1.3, cex.axis=1, cex.main=1.3)}
+ltp_plot(Mean.Slope ~ Minute, ltpdata[1:10,])
+arrows(ltpdata$Minute, ltpdata$Mean.Slope-ltpdata$SEM, ltpdata$Minute,  ltpdata$Mean.Slope+ltpdata$SEM,+
+	code=3,length=0.00,angle =90, col="grey")
+points(Mean.Slope ~ Minute, ltpdata[1:10,], col="red", pch =19)
+points(Mean.Slope ~ Minute, ltpdata[11:40,], col="black", pch =19)
+lines(Mean.Slope ~ Minute, ltpdata[11:40,],  col="black",lty=2)
+legend(35,50,legend=c("Baseline","LTP"), col=c("red","black"), pch=c(19,19),lty=c(2,2), ncol=1)
+
+# Plot 2 female, 2 male  LTP successes.
+# Data in 'ltpsex.csv' describes the mean normalised average 
+# initial slope of field excitatory postsynaptic potentials (n=4).
+ltpsex <- read.csv(file="ltpsex.csv",header=TRUE,na.strings="")
+ltpsex_plot <- function(x,y) {plot(x, y, main = "LTP Profile by Sex", xlab = "Minutes", ylab = "Slope (normalised %)",+
+	ylim = c(0,200), xlim = c(0,45), type="b", col="black", lty=2, lwd=1, pch =19, cex.lab=1.3, cex.axis=1, cex.main=1.3)}
+ltpsex_plot(FMean ~ Min, ltpsex[1:10,])
+arrows(ltpsex$Min, ltpsex$FMean-ltpsex$FSEM, ltpsex$Min,  ltpsex$FMean+ltpsex$FSEM,code=3,length=0.00,angle =90, col="grey")
+arrows(ltpsex$Min, ltpsex$MMean-ltpsex$MSEM, ltpsex$Min,  ltpsex$MMean+ltpsex$MSEM,code=3,length=0.00,angle =90, col="orange")
+points(FMean ~ Min, ltpsex[1:10,], col="black", pch =19)
+points(FMean ~ Min, ltpsex[11:40,], col="black", pch =19)
+lines(FMean ~ Min, ltpsex[11:40,],  col="black",lty=2)
+points(MMean ~ Min, ltpsex[1:10,], col="orange", pch =19)
+lines(MMean ~ Min, ltpsex[1:10,],  col="orange",lty=2)
+points(MMean ~ Min, ltpsex[11:40,], col="orange", pch =19)
+lines(MMean ~ Min, ltpsex[11:40,],  col="orange",lty=2)
+legend(35,50,legend=c("Female", "Male"), col=c("black", "orange"), pch=c(19,19),lty=c(2,2), ncol=1)
+
+# Plot fEPSP slope and trendlines by sex
+# Data in ‘ltpsex.csv’ includes mean fEPSP slope, sex, minute (n=4).
+plot(ltpsex[1:30,2], ltpsex[1:30,4], main = "LTP Profile by Sex", xlab = "Minutes", ylab = "Slope (normalised %)",+
+	ylim = c(100,200), xlim = c(10,50), type="b", col="black", lty=2, lwd=1, pch =19, cex.lab=1.3, cex.axis=1, cex.main=1.3)
+points(ltpsex[31:60,2], ltpsex[31:60,4], col="orange", pch =19)+
+ines(ltpsex[31:60,2], ltpsex[31:60,4], col="orange",lty=2)
+x <- ltpsex[1:30,2]
+y <- ltpsex[1:30,4]
+fit <-glm(y~x)
+co <-coef(fit)
+abline(fit,col="grey",lwd=2)
+x2 <- ltpsex[31:60,2]
+y2 <- ltpsex[31:60,4]
+fit2 <-glm(y2~x2)
+co2 <-coef(fit2)
+abline(fit2,col="orange",lwd=1)
+legend(42,190,legend=c("Female", "Male"), col=c("black", "orange"), pch=c(19,19),lty=c(2,2), ncol=1)
+t1 <- trendline(x,y,model="line2P",ePos.x="topright",summary=FALSE,eDigit=5,eSize = 1.3, text.col = "black",+
+	linecolor = "black", xlab = "Minute", ylab = "Slope (normalised %)", CI.color = "lightgrey", main = "Female",+
+	cex.lab=1.3, cex.axis=1, cex.main=1.3)
+t2 <- trendline(x2,y2,model="line2P",ePos.x="topright",summary=FALSE,eDigit=5,eSize = 1.3, text.col = "black",+
+	linecolor = "orange", xlab = "Minute", ylab = "Slope (normalised %)", CI.color = "lightgrey", main = "Male",+
+	cex.lab=1.3, cex.axis=1, cex.main=1.3)
+	
+# End graphs.
+# End R code for analysis and graphs.
