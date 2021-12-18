@@ -1,0 +1,37 @@
+Sub LTP_Macro ()
+	' Set up Input-Output-Curve document with Scope View & 1 recording channel
+	Call Doc.OpenView ("Scope View")
+	Call Doc.SetViewState ("Scope View", 1, 61488)
+	Call Doc.SetDisplayedChannels (1)
+	Call Doc.FileSaveAsDialog ()
+	' -------------------------
+
+	Call Doc.AddCommentAtEnd (0, "Begin HFS 3 x 0.6 mA")
+
+	outputIndex = 0
+	paramId = "_IAmp"
+	value = "0.6"
+	unit = "mA"
+	suppressRefresh = False
+	Call Doc.SetStimulatorValue (outputIndex, paramId, value, unit, suppressRefresh)
+
+	Call Doc.StimulateNow ()
+	seconds = 60
+	Call WaitFor (hours, minutes, seconds)
+	' -------------------------
+
+	Call Doc.StimulateNow ()
+	seconds = 60
+	Call WaitFor (hours, minutes, seconds)
+	' -------------------------
+
+	Call Doc.StimulateNow ()
+	seconds = 60
+	Call WaitFor (hours, minutes, seconds)
+	' -------------------------
+
+	Call Doc.AddCommentAtEnd (0, "End HFS 3 x 0.6 mA")
+
+
+End Sub
+
